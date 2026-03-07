@@ -1,4 +1,4 @@
-python erd_from_ddl.py schema.sql
+PS C:\Users\BM354VJ\OneDrive - EY\Desktop\agentic-data-modelling-backend> python erd_from_ddl.py schema.sql
 // Entity Relationship Diagram
 digraph ERD {
         bgcolor="#1A1D2E" fontname="Helvetica Neue,Helvetica,Arial,sans-serif" margin=0.4 nodesep=0.7 overlap=false pad=0.6 rankdir=LR ranksep=1.2 splines=ortho
@@ -47,4 +47,3 @@ Traceback (most recent call last):
   File "C:\Users\BM354VJ\OneDrive - EY\Desktop\.venv\Lib\site-packages\graphviz\backend\execute.py", line 90, in run_check
     raise CalledProcessError(*e.args)
 graphviz.backend.execute.CalledProcessError: Command '[WindowsPath('dot'), '-Kdot', '-Tpng', '-O', 'erd_output']' returned non-zero exit status 1. [stderr: b'Error: syntax error in line 1 \r\n... <FONT COLOR="#C8D8F0" POINT-SIZE="9"></FONT> ...\r\nin label of node departments\r\nWarning: Orthogonal edges do not currently handle edge labels. Try using xlabels.\r\n']
-(.venv) PS C:\Users\BM354VJ\OneDrive - EY\Desktop\agentic-data-modelling-backend> 
