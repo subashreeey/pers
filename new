@@ -1,0 +1,75 @@
+import sqlparse
+from graphviz import Digraph
+import sys
+ 
+def generate_erd(ddl_statements: list[str]) -> str:
+    """Convert DDL statements to an ERD using Graphviz DOT format."""
+    ddl_text = '\n'.join(ddl_statements)
+    parsed = sqlparse.parse(ddl_text)
+    tables = {}
+    relationships = []
+ 
+    for stmt in parsed:
+        if stmt.get_type() == 'CREATE':
+            tokens = [t for t in stmt.flatten() if t.ttype is None or t.ttype in (sqlparse.tokens.Keyword, sqlparse.tokens.Name)]
+            table_name = None
+            columns = []
+            fks = []
+            in_columns = False
+            in_fk = False
+            fk_col = None
+            fk_ref = None
+            for i, token in enumerate(tokens):
+                if token.value.upper() == 'TABLE':
+                    table_name = tokens[i+1].value if i+1 < len(tokens) else None
+                elif token.value == '(':
+                    in_columns = True
+                elif token.value == ')':
+                    in_columns = False
+                elif in_columns and token.ttype is None and ',' not in token.value and not token.value.upper().startswith('PRIMARY') and not token.value.upper().startswith('FOREIGN'):
+                    columns.append(token.value.strip())
+                elif token.value.upper() == 'FOREIGN':
+                    in_fk = True
+                elif in_fk and token.value.upper() == 'KEY':
+                    fk_col = tokens[i+1].value.strip('()') if i+1 < len(tokens) else None
+                elif in_fk and token.value.upper() == 'REFERENCES':
+                    fk_ref = tokens[i+1].value if i+1 < len(tokens) else None
+                    if fk_col and fk_ref:
+                        fks.append((fk_col, fk_ref))
+                    in_fk = False
+            if table_name:
+                tables[table_name] = columns
+                for fk_col, fk_ref in fks:
+                    relationships.append((table_name, fk_ref, fk_col))
+ 
+    # Generate DOT
+    dot = Digraph(comment='ERD')
+    for table, cols in tables.items():
+        label = f"{table}\\n" + "\\n".join(f"- {col}" for col in cols)
+        dot.node(table, label=label, shape='box')
+    for src, dst, label in relationships:
+        dot.edge(src, dst, label=label)
+    return dot.source  # Returns the DOT string
+ 
+# ...existing code...
+ 
+if __name__ == "__main__":
+    # Read DDL from stdin or file
+    if len(sys.argv) > 1:
+        with open(sys.argv[1], 'r') as f:
+            ddl_text = f.read()
+    else:
+        ddl_text = sys.stdin.read()
+   
+    ddl_statements = ddl_text.strip().split('\n')
+    erd_dot = generate_erd(ddl_statements)
+    print(erd_dot)
+   
+    # Optional: Render to PNG
+    from graphviz import Source
+    src = Source(erd_dot)
+    src.render('erd_output', format='png', cleanup=True)
+    print("ERD rendered to erd_output.png")
+ 
+# ...existing code...
+ 
